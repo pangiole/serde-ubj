@@ -1,11 +1,19 @@
-# serde-ubjson
-The [UBSJON](https://github.com/ubjson/universal-binary-json) format implementation for Rust with [Serde](https://github.com/serde-rs/serde)
+# serde-ubj
+[Universal Binary JSON](https://github.com/ubjson/universal-binary-json) format for Rust with [Serde](https://github.com/serde-rs/serde), fully compliant and fully tested. No bad surprises.
+
+> [!WARNING]  
+> This project is in an early stage of development, and <strong>not</strong> production ready yet.
+> Use with caution!
+> 
 
 ## tl;dr
-With any writer you like, serialize your model to UBJSON in a few instructions: 
+For the impatient.
+
+### serialization
+With any Rust standard writer you like, serialize your user-defined model to Universal Binary JSON in a few instructions: 
 
 ```rust
-use serde_ubjson;
+use serde_ubj;
 use sdt::{error, io};
 
 fn main() -> Result<(), Box<dyn error::Error>> {
@@ -18,10 +26,27 @@ fn main() -> Result<(), Box<dyn error::Error>> {
   let model: MyModel = ...; 
   // for which you have derived the serde::Serialize implementation   
     
-  // And then write it to UBJSON
-  serde_ubjson::to_writer(&w, &model)?;
+  // And then write it to Universal Binary JSON
+  serde_ubj::to_writer(&w, &model)?;
 }
 ```
+
+### deserialization
+Coming soon.
+
+
+## exceptions
+This implementation provides all the features of the Universal Binary JSON specification that make sense for the Rust type system, with the following few exceptions:
+
+* Upon serialization
+
+  * Rust `&[u8]` (byte slices)
+  * Rust `u64` values greater than `i64::MAX`
+  * Rust `alloc::string::String` (or `&str` slices) with len greater `i64::MAX`,
+  * Rust `std::collections::HashMap`
+
+* Upon deserialization
+  * ???
 
 ## book
 Coming soon.

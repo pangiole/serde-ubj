@@ -32,7 +32,8 @@ cargo doc --verbose --features std --no-deps
 step "BUILDING RELEASE"
 cargo build --release --features std
 
-#step "BUILDING BOOK"
-#cd "$script_dir/book" && mdbook  build
+
+step "BUILDING BOOK"
+cd "$script_dir/book" && mdbook build
 
 exit 0

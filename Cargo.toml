@@ -1,0 +1,32 @@
+[package]
+name = "serde_ubj"
+version = "0.1.0"
+edition = "2024"
+license = "WTFPL"
+authors = [
+    "Paolo Angioletti <paolo.angioletti@gmail.com>"
+]
+description = "Universal Binary JSON format for Rust with Serde, fully tested."
+repository = "https://github.com/pangiole/serde-ubj"
+keywords = [
+    "serde",
+    "serialization",
+    "ubj",
+    "ubjson",
+    "json"
+]
+categories = [
+    "encoding"
+]
+exclude = [
+    "book"
+]
+
+[features]
+std = []
+
+[dependencies]
+serde = { version = "1.0.228", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+serde = { version = "1.0.228", default-features = false, features = ["std", "derive"] }

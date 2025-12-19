@@ -11,6 +11,8 @@ cargo binstall --no-confirm \
   cargo-cache \
   cargo-llvm-cov \
   cargo-expand \
-  mdbook
+  mdbook \
+  mdbook-mermaid
+
 
 cargo cache --autoclean
