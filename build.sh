@@ -3,6 +3,8 @@
 set -euo pipefail
 readonly script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+no_std=''
+[[ "${1:-''}" == "no_std" ]] && no_std="--no-default-features --features alloc"
 
 
 function step {
@@ -17,23 +19,16 @@ cargo clean
 
 
 step "LINTING"
-cargo clippy --features std
+cargo clippy $no_std
 
 
 step "TESTING"
-cargo llvm-cov --features std # --text # --html
+cargo llvm-cov $no_std # --text # --html
 
 
 step "BUILDING DOCS"
-cargo test --doc --features std -- --show-output
-cargo doc --verbose --features std --no-deps
+cargo test $no_std --doc -- --show-output
+cargo doc $no_std --verbose --no-deps
 
-
-step "BUILDING RELEASE"
-cargo build --release --features std
-
-
-step "BUILDING BOOK"
-cd "$script_dir/book" && mdbook build
 
 exit 0

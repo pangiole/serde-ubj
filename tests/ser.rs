@@ -1,6 +1,5 @@
-use serde_ubj::*;
-
 // See http://dmitry-ra.github.io/ubjson-test-suite/json-converter.html
+use serde_ubj::*;
 
 #[test]
 fn serialize_bool() {
@@ -108,7 +107,7 @@ fn serialize_huge() {
 #[test]
 fn serialize_u64() {
     assert_ok(922337203685477_u64 , &[0x4C, 0x00, 0x03, 0x46, 0xDC, 0x5D, 0x63, 0x88, 0x65]);
-    assert_err(u64::MAX, UbjError::UnsupportedType("u64"));
+    assert_err(u64::MAX, serde_ubj::UbjError::UnsupportedType("u64"));
 }
 
 #[test]
@@ -124,10 +123,17 @@ fn serialize_float_f64() {
     );
 }
 
+// TODO Test when serializing a char that happend to be out of the 0..127 range
 #[test]
-fn serialize_char() {
+fn serialize_char_ok() {
     assert_ok('H', &[0x43, 0x48]);
 }
+
+#[test]
+fn serialize_char_out_of_range() {
+    assert_err('ü', UbjError::CharOutOfRange('ü'));
+}
+
 
 #[test]
 fn serialize_str_45_long() {
@@ -186,6 +192,9 @@ fn serialize_none() {
 fn serialize_bytes() {
     todo!()
 }
+
+// TODO Add more test cases for most of the std (standard) types, such as std::time::Instant and similar
+
 
 // ---------------------------------------------------------------------------------
 
@@ -320,6 +329,7 @@ fn serialize_struct() {
     );
 }
 
+
 #[test]
 #[ignore]
 fn serialize_map() {
@@ -425,7 +435,7 @@ fn assert_ok<T>(value: T, expected: &[u8]) where T: serde::Serialize
     assert_eq!(buffer.as_slice(), expected);
 }
 
-fn assert_err<T>(value: T, err: UbjError) where T: serde::Serialize {
+fn assert_err<T>(value: T, err: serde_ubj::UbjError) where T: serde::Serialize {
     let mut buffer = Vec::new();
     let result = serde_ubj::to_writer(&mut buffer, &value);
     assert!(result.is_err());

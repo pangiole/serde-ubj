@@ -1,12 +1,12 @@
 [package]
 name = "serde_ubj"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 license = "WTFPL"
 authors = [
     "Paolo Angioletti <paolo.angioletti@gmail.com>"
 ]
-description = "Universal Binary JSON format for Rust with Serde, fully tested."
+description = "Universal Binary JSON format for Rust with Serde, for both `std` and `no_std` environments."
 repository = "https://github.com/pangiole/serde-ubj"
 keywords = [
     "serde",
@@ -23,10 +23,13 @@ exclude = [
 ]
 
 [features]
-std = []
+default = ["std"]
+std = ["alloc", "serde/std"]
+alloc = ["serde/alloc"]
+
 
 [dependencies]
-serde = { version = "1.0.228", default-features = false, features = ["std"] }
+serde = { version = "1.0.228", default-features = false}
 
 [dev-dependencies]
-serde = { version = "1.0.228", default-features = false, features = ["std", "derive"] }
+serde = { version = "1.0.228", default-features = false, features = ["alloc", "derive"] }
