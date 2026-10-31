@@ -19,7 +19,8 @@ categories = [
     "encoding"
 ]
 exclude = [
-    "book"
+    "book",
+    "docs"
 ]
 
 [features]

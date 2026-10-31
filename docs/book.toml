@@ -1,0 +1,17 @@
+[book]
+title = "Walkthrough a Serde format in Rust"
+authors = ["Paolo Angioletti"]
+description = "A book explaining how to implement an UBJ serializer/deserializer in Rust language with the Serde framework"
+language = "en"
+src = "src"
+
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
+[output]
+
+[output.html]
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+site-url = "/serde-ubj/"
+git-repository-url = "https://github.com/pangiole/serde-ubj"

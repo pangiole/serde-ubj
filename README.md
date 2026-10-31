@@ -92,5 +92,16 @@ serde_ubj = { version = "0.2.0", default-features = false, features = ["embedded
 embedded-io = { version = "latest" }
 ```
 
-## book
-Coming soon.
+## Documentation
+The walkthrough guide is an mdBook under [`docs/`](docs/):
+
+```sh
+mdbook serve docs   # live preview at http://localhost:3000
+mdbook build docs   # static HTML in docs/book/
+```
+
+It is published through the main site — <https://pangiole.github.io/serde-ubj/>
+— rather than to GitHub Pages here. On every push to `main`, the
+[`.github/workflows/notify-site.yml`](.github/workflows/notify-site.yml) workflow
+notifies the `pangiole.github.io` repository, which bumps this repo's gitlink and
+rebuilds the book into the site.
