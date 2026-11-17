@@ -1,0 +1,12 @@
+/* Render tables at a slightly smaller size than the surrounding prose: the
+   marker quick-reference tables in the Format chapter are wide and denser than
+   normal text. */
+table {
+    font-size: 0.875em;
+}
+
+/* Keep inline code (e.g. the Marker column) at the table's own size instead of
+   shrinking a second time against --code-font-size. */
+table code {
+    font-size: 1em;
+}

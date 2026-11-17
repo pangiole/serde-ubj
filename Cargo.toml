@@ -1,42 +1,78 @@
 [package]
-name = "serde_ubj"
-version = "0.2.0"
-edition = "2024"
-license = "WTFPL"
-authors = [
-    "Paolo Angioletti <paolo.angioletti@gmail.com>"
-]
-description = "Universal Binary JSON data format for Rust with Serde (both `std` and `no_std` environments)."
-repository = "https://github.com/pangiole/serde-ubj"
-keywords = [
-    "serde",
-    "serialization",
-    "ubj",
-    "ubjson",
-    "json"
-]
-categories = [
-    "encoding"
-]
-exclude = [
-    "book",
-    "docs"
-]
-
-[features]
-default = ["std"]
-std = ["serde/std"]
-embedded-io = ["dep:embedded-io"]
+    name = "serde_ubj"
+    version = "0.2.0"
+    edition = "2024"
+    license = "WTFPL"
+    authors = [
+        "Paolo Angioletti <paolo.angioletti@gmail.com>"
+    ]
+    description = "Universal Binary JSON data format for Rust with Serde (both `std` and `no_std`)."
+    repository = "https://github.com/pangiole/serde-ubj"
+    keywords = [
+        "serde",
+        "serialization",
+        "ubj",
+        "ubjson",
+        "json"
+    ]
+    categories = [
+        "encoding"
+    ]
+    exclude = [
+        "docs"
+    ]
 
 
 [dependencies]
-serde = { version = "1.0.228", default-features = false, features = ["alloc"]}
-embedded-io = { version = "0.7.1", optional = true, default-features = false, features = ["alloc"]}
+    serde = {
+        version = "1.0.229",
+        default-features = false,
+        features = []
+    }
+    embedded-io = {
+        version = "0.7.0",
+        default-features = false,
+        features = []
+    }
+    thiserror = {
+        version = "2.0.21",
+        default-features = false,
+        features = []
+    }
+    embedded-io-adapters = {
+        version = "0.7.0",
+        default-features = false,
+        features = [],
+        optional = true
+    }
+
+
+[features]
+    default = [
+        "std"
+    ]
+    # Targets standard environments
+    std = [
+        "alloc",
+        "serde/std",
+        "thiserror/std",
+        "embedded-io-adapters/std"
+    ]
+    # Targets no_std with heap-allocator environments
+    alloc = [
+        "serde/alloc",
+        "embedded-io/alloc"
+    ]
+    # Targets strictly no_std enviornments
+    no_std = [
+
+    ]
+
 
 
 [dev-dependencies]
-serde = { version = "1.0.228", default-features = false, features = ["alloc", "derive"] }
-embedded-io = { version = "0.7.1", default-features = false, features = ["alloc"] }
-serde_bytes = { version = "0.11.19", default-features = false, features = ["alloc"] }
-indexmap = { version = "2.13.0", default-features = false, features = ["serde"]}
-fnv = { version = "1.0.7", default-features = false }
+    serde = { version = "1.0.228", default-features = false, features = ["alloc", "derive"] }
+    embedded-io = { version = "0.7.1", default-features = false, features = ["alloc"] }
+    serde_bytes = { version = "0.11.19", default-features = false, features = ["alloc"] }
+    indexmap = { version = "2.13.0", default-features = false, features = ["serde"]}
+    fnv = { version = "1.0.7", default-features = false }

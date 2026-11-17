@@ -1,38 +1,63 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
+
+// Disable the standard library unless the "std" feature is active
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(not(any(feature = "std", feature = "embedded-io")))]
-compile_error! {
-    "serde_ubj requires that either `std` (default) or `embedded-io` features to be enabled"
-}
+// Bring heap-allocated types (String, Vec, Box) into scope whenever
+// either the "alloc" or "std" feature is active
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
+// (Optional) Explicitly reference the std crate when the std feature is enabled,
+// although standard library items are in the prelude by default.
 #[cfg(feature = "std")]
 extern crate std;
 
-// Our serde_ubj crate requires the alloc build-in crate for either 'std' or 'embedded-io' features.
-extern crate alloc;
 
-#[cfg(any(feature = "std", feature = "embedded-io"))]
-mod inner {
+// Our internal module defining private items
+mod internal {
 
-    #[cfg(feature = "std")]
-    pub use std::{io::BufRead as IoBufRead, io::Error as IoError, io::Write as IoWrite};
+    // Error handling matters
+    pub mod error;
+    pub mod result;
 
-    #[cfg(all(not(feature = "std"), feature = "embedded-io"))]
-    pub use embedded_io::{BufRead as IoBufRead, ErrorKind as IoError, Write as IoWrite};
+    // I/O layer, fully hidden inside
+    mod io {
+        mod marker;
+        pub mod reader;
+        pub mod writer;
+    }
 
-    pub mod de;
-    pub mod err;
-    mod markers;
-    mod reader;
-    pub mod ser;
-    mod writer;
+    // Serde layer, with partially exposed items
+    pub mod serde {
+        pub mod de;
+        pub mod ser;
+    }
+
 }
 
-// Re-exports
+// RE-exports some items to the public-facing API layer
 
-pub use inner::de::{from_vec, from_buf_reader};
-pub use inner::err::UbjError;
-pub use inner::err::UbjResult;
-pub use inner::ser::{to_vec, to_writer};
+pub use internal::error::UbjError as Error;
+pub use internal::result::UbjResult as Result;
+
+#[cfg(feature = "std")]
+pub use internal::serde::ser::to_writer;
+
+#[cfg(feature = "alloc")]
+pub use internal::serde::ser::to_vec;
+
+pub use internal::serde::ser::to_slice;
+
+
+#[cfg(feature = "std")]
+pub use internal::serde::de::from_buf_reader;
+
+#[cfg(feature = "alloc")]
+pub use internal::serde::de::from_vec;
+
+#[cfg(feature = "alloc")] // TODO from_slice should work in no_std strict environments too!
+pub use internal::serde::de::from_slice;
+
+

@@ -1,5 +1,5 @@
-# serde-ubj
-[Universal Binary JSON](https://github.com/ubjson/universal-binary-json) data format for Rust with [Serde](https://github.com/serde-rs/serde) (both `std` and `no_std` environments).
+# serde_ubj
+[Universal Binary JSON](https://github.com/ubjson/universal-binary-json) data format for Rust with [Serde](https://github.com/serde-rs/serde) (both `std` and `no_std`).
 
 > [!WARNING]
 > This project is in an early stage of development, and <strong>not</strong> production ready yet.<br>Use with caution!
@@ -99,6 +99,14 @@ The walkthrough guide is an mdBook under [`docs/`](docs/):
 mdbook serve docs   # live preview at http://localhost:3000
 mdbook build docs   # static HTML in docs/book/
 ```
+
+To emphasize a fragment inside a fenced code block, wrap it in the pair of
+block comments `/*<highlight>*/` and `/*</highlight>*/`. The delimiters are
+regular Rust comments (so doctests and `mdbook test` still compile); mdBook
+renders the enclosed fragment with a marker-pen highlight and drops the
+delimiters from the page and from the copy button. See
+[`docs/code-highlight.js`](docs/code-highlight.js) and
+[`docs/code-highlight.css`](docs/code-highlight.css).
 
 It is published through the main site — <https://pangiole.github.io/serde-ubj/>
 — rather than to GitHub Pages here. On every push to `main`, the

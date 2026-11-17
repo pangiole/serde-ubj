@@ -2,39 +2,22 @@
 
 [Walkthrough a Serde format in Rust](index.md)
 
-- [Introduction](01-introduction.md)
-- [Data Formats](02-data-formats.md)
-
-[//]: # (- [The Big Picture]&#40;03-architecture.md&#41;)
-
-[//]: # ()
-[//]: # (# The Format Layer)
-
-[//]: # ()
-[//]: # (- [Markers]&#40;04-format/markers.md&#41;)
-
-[//]: # (- [The Writer]&#40;04-format/writer.md&#41;)
-
-[//]: # (- [The Reader]&#40;04-format/reader.md&#41;)
-
-[//]: # ()
-[//]: # (# The Serde Layer)
-
-[//]: # ()
-[//]: # (- [Errors]&#40;05-errors.md&#41;)
-
-[//]: # (- [The Serializer]&#40;06-serializer.md&#41;)
-
-[//]: # (- [The Deserializer]&#40;07-deserializer.md&#41;)
-
-[//]: # ()
-[//]: # (# Going Further)
-
-[//]: # ()
-[//]: # (- [Advanced Cases]&#40;08-advanced.md&#41;)
-
-[//]: # (- [no_std Support]&#40;09-no-std.md&#41;)
-
-[//]: # (- [Testing]&#40;10-testing.md&#41;)
-
-[//]: # (- [Roadmap]&#40;11-roadmap.md&#41;)
+- [Introduction](01-introduction/01-introduction.md)
+- [Data Formats](02-data-formats/02-data-formats.md)
+- [Data Models](03-data-models/03-data-models.md)
+  - [Application Model](03-data-models/03-app-model.md)
+  - [Serde Model](03-data-models/03-serde-model.md)
+- [Structuring](04-structuring/04-structuring.md)
+  - [Crate](04-structuring/04-crate.md)
+  - [Modules](04-structuring/04-modules.md)  
+  - [Errors](04-structuring/04-errors.md)  
+  - [Tests](04-structuring/04-tests.md)  
+- [The I/O Layer](05-io-layer/05-io-layer.md)
+  - [Format](05-io-layer/05-format.md)
+  - [Writing](05-io-layer/05-writer.md)
+  - [Reading](05-io-layer/05-reader.md)
+- [The Serde Layer](06-serde-layer/06-serde-layer.md)
+  - [Serializing](06-serde-layer/06-serializer.md)
+- [Embedded Programming](07-embedded-programming/07-embedded-programming.md)
+- [The API Layer](08-api-layer/08-api-layer.md)
+- [Appendix: Simple Binary Encoding](appendix/a1-sbe-format.md)

@@ -1,6 +1,6 @@
-// See http://dmitry-ra.github.io/ubjson-test-suite/json-converter.html
+#![cfg(feature = "std")]
 
-use serde_ubj::*;
+// See http://dmitry-ra.github.io/ubjson-test-suite/json-converter.html
 
 #[path = "model.rs"]
 mod model;
@@ -12,7 +12,7 @@ mod text;
 macro_rules! assert_serialize_ok {
     ($value:expr, $expected:expr) => {
         let mut buffer: Vec<u8> = Vec::new();
-        let result = to_writer(&mut buffer, &$value);
+        let result = serde_ubj::to_writer(&mut buffer, &$value);
         assert!(result.is_ok());
         assert_eq!(buffer.as_slice(), $expected);
     };
@@ -21,7 +21,7 @@ macro_rules! assert_serialize_ok {
 macro_rules! assert_serialize_err {
     ($value:expr, $err:expr) => {
         let mut buffer = Vec::new();
-        let result = to_writer(&mut buffer, &$value);
+        let result = serde_ubj::to_writer(&mut buffer, &$value);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), $err.to_string());
     };
@@ -34,7 +34,7 @@ macro_rules! assert_serialize_map_key_err {
                 FnvHasher;
                 $key => String::from("value"),
             },
-            UbjError::IllegalKeyType($key_type)
+            serde_ubj::Error::IllegalKeyType($key_type)
         );
     };
 }
@@ -50,6 +50,10 @@ fn serialize_unit() {
     assert_serialize_ok!((), &[0x5A]);
 }
 
+#[test]
+fn serialize_none() {
+    assert_serialize_ok!(None as Option<()>, &[0x5A]);
+}
 
 #[test]
 fn serialize_bool() {
@@ -152,17 +156,17 @@ fn serialize_i64() {
 #[test]
 fn serialize_u64() {
     assert_serialize_ok!(922337203685477_u64, &[0x4C, 0x00, 0x03, 0x46, 0xDC, 0x5D, 0x63, 0x88, 0x65]);
-    assert_serialize_err!(u64::MAX, UbjError::Unsupported("Rust u64 values greater than i64::MAX"));
+    assert_serialize_err!(u64::MAX, serde_ubj::Error::Unsupported("Rust u64 values greater than i64::MAX"));
 }
 
 #[test]
 fn serialize_i128() {
-    assert_serialize_err!(i128::MAX, UbjError::Unsupported("Rust i128 values"));
+    assert_serialize_err!(i128::MAX, serde_ubj::Error::Unsupported("Rust i128 values"));
 }
 
 #[test]
 fn serialize_u128() {
-    assert_serialize_err!(u128::MAX, UbjError::Unsupported("Rust u128 values"));
+    assert_serialize_err!(u128::MAX, serde_ubj::Error::Unsupported("Rust u128 values"));
 }
 
 #[test]
@@ -184,33 +188,45 @@ fn serialize_float_f64() {
 #[test]
 fn serialize_char_ok() {
     assert_serialize_ok!('H', &[0x43, 0x48]);
-    assert_serialize_err!('ü', UbjError::CharNotAscii('ü' as u32));
+    assert_serialize_err!('ü', serde_ubj::Error::NotAsciiChar('ü' as u32));
 }
 
 #[test]
+fn serialize_str_slice() {
+    let text = "text";
+    assert_serialize_ok!(text, [
+        0x53, 0x55, 0x04, 0x74, 0x65, 0x78, 0x74
+    ]);
+}
+
+#[cfg(feature = "alloc")]
+#[test]
 fn serialize_string_45_bytes_long() {
-    let (text, ubj) = text::generate(45);
+    let (text, ubj) = text::randomize(45);
     assert_eq!(ubj[1], 0x55);
     assert_serialize_ok!(text, ubj.as_slice());
 }
 
+#[cfg(feature = "alloc")]
 #[test]
 fn serialize_string_230_bytes_long() {
-    let (text, ubj) = text::generate(230);
+    let (text, ubj) = text::randomize(230);
     assert_eq!(ubj[1], 0x55); // u8
     assert_serialize_ok!(text, ubj.as_slice());
 }
 
+#[cfg(feature = "alloc")]
 #[test]
 fn serialize_string_15300_bytes_long() {
-    let (text, ubj) = text::generate(15300);
+    let (text, ubj) = text::randomize(15300);
     assert_eq!(ubj[1], 0x49); // i16
     assert_serialize_ok!(text, ubj.as_slice());
 }
 
+#[cfg(feature = "alloc")]
 #[test]
 fn serialize_string_7483648_bytes_long() {
-    let (text, ubj) = text::generate(7483648);
+    let (text, ubj) = text::randomize(7483648);
     assert_eq!(ubj[1], 0x6C); // i32
     assert_serialize_ok!(text, ubj.as_slice());
 }
@@ -219,7 +235,7 @@ fn serialize_string_7483648_bytes_long() {
 #[ignore]
 // WARNING this test requires 2.15 GB of RAM (too expensive for CI)
 fn serialize_string_2147483648_bytes_long() {
-    let (text, ubj) = text::generate(2147483648);
+    let (text, ubj) = text::randomize(2147483648);
     assert_eq!(ubj[1], 0x4C); // i64
     assert_serialize_ok!(text, ubj.as_slice());
 }
@@ -243,13 +259,9 @@ fn serialize_string_2147483648_bytes_long() {
 
 
 // ---------------------------------------------------------------------------------
-//  C O M P O U N D   values
+//  C O N T A I N E R   values
 // ---------------------------------------------------------------------------------
 
-#[test]
-fn serialize_none() {
-    assert_serialize_ok!(None as Option<()>, &[0x5A]);
-}
 
 #[test]
 fn serialize_some_bool() {
@@ -268,9 +280,9 @@ fn serialize_some_i8() {
 // --------
 #[test]
 fn serialize_vector() {
-    let my_sequence = vec![12_i8, 64_i8, 123_i8];
+    let my_vector = vec![12_i8, 64_i8, 123_i8];
     assert_serialize_ok!(
-        my_sequence,
+        my_vector,
         &[
             0x5B,
                 0x69, 0x0C,
@@ -298,14 +310,14 @@ fn serialize_array() {
 
 #[test]
 fn serialize_tuple() {
-    let my_tuple: (i8, i8, i8) = (12_i8, 64_i8, 123_i8);
+    let my_tuple: (i8, bool, char) = (12_i8, true, 'A');
     assert_serialize_ok!(
         my_tuple,
         &[
             0x5B,
                 0x69, 0x0C,
-                0x69, 0x40,
-                0x69, 0x7B,
+                0x54,
+                0x43, 0x41,
             0x5D
         ]);
 }
@@ -533,7 +545,7 @@ fn serialize_map_key_err_bytes() {
         FnvHasher;
         bytes => String::from("value"),
     };
-    assert_serialize_err!(my_map, UbjError::IllegalKeyType("&[u8]"));
+    assert_serialize_err!(my_map, serde_ubj::Error::IllegalKeyType("&[u8]"));
 }
 #[test]
 fn serialize_map_key_err_none() {
@@ -615,4 +627,42 @@ fn serialize_map_key_err_tuple_variant() {
 fn serialize_map_key_err_struct_variant() {
     use model::MyEnum;
     assert_serialize_map_key_err!(MyEnum::MyStructVariant{ x: 1_i8, y: false, z: String::from("value") }, "enum");
+}
+
+
+// ---------------------------------------------------------------------------------
+// I O    w r i t e r s
+// ---------------------------------------------------------------------------------
+
+/// Writer that records how many times `flush` is called, so that we can assert
+/// that `to_writer` leaves flushing to the caller.
+struct FlushCountingWriter {
+    bytes: Vec<u8>,
+    flushes: usize,
+}
+
+impl std::io::Write for FlushCountingWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.bytes.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.flushes += 1;
+        Ok(())
+    }
+}
+
+#[test]
+fn to_writer_does_not_flush() {
+    let mut writer = FlushCountingWriter { bytes: Vec::new(), flushes: 0 };
+
+    serde_ubj::to_writer(&mut writer, &123_i8).unwrap();
+
+    assert_eq!(writer.bytes.as_slice(), &[0x69, 0x7B]);
+    assert_eq!(writer.flushes, 0, "to_writer must leave flushing to the caller");
+
+    // The caller can still flush the sink explicitly.
+    std::io::Write::flush(&mut writer).unwrap();
+    assert_eq!(writer.flushes, 1);
 }

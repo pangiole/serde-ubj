@@ -1,35 +1,59 @@
-use crate::inner::IoBufRead;
-use crate::inner::err::{UbjError, UbjResult};
-use crate::inner::markers::UbjMarker;
+use crate::internal::error::UbjError;
+use crate::internal::result::UbjResult;
+use crate::internal::io::marker::UbjMarker;
+use embedded_io::BufRead as Source;
 
-pub struct UbjReader<R>
+pub struct UbjReader<S>
 where
-    R: IoBufRead,
+    S: Source,
 {
-    underlying: R,
+    source: S,
     bytes_consumed: usize,
 }
 
-impl<R> UbjReader<R>
+#[cfg(feature = "std")]
+impl<S> UbjReader<embedded_io_adapters::std::FromStd<S>>
 where
-    R: IoBufRead,
+    S: std::io::BufRead,
 {
-    /// Creates a new UBJ reader instance that delegates all operations to the provided reader.
-    pub fn new(buf_read: R) -> Self {
+    /// Creates a new UBJ reader instance that delegates all operations to the provided reader,
+    /// by internally adapting it through the `embedded-io-adapters` `FromStd` wrapper.
+    pub fn new(source: S) -> Self {
         Self {
-            underlying: buf_read,
+            source: embedded_io_adapters::std::FromStd::new(source),
             bytes_consumed: 0,
         }
     }
+}
+
+#[cfg(not(feature = "std"))]
+impl<S> UbjReader<S>
+where
+    S: Source,
+{
+    /// Creates a new UBJ reader instance that delegates all operations to the provided source.
+    pub fn new(source: S) -> Self {
+        Self {
+            source,
+            bytes_consumed: 0,
+        }
+    }
+}
+
+impl<S> UbjReader<S>
+where
+    S: Source,
+{
 
     fn buf_consume(&mut self, n: usize) {
-        self.underlying.consume(n);
+        self.source.consume(n);
         self.bytes_consumed += n;
     }
 
     fn buf_refill(&mut self) -> UbjResult<&[u8]> {
-        // TODO Shouldn't we handle the std:io::Error::WouldBlock case?
-        let buf = self.underlying.fill_buf().map_err(UbjError::from_io_error)?;
+        use embedded_io::Error;
+
+        let buf = self.source.fill_buf().map_err(|e| UbjError::from(e.kind()))?;
         if buf.is_empty() {
             Err(UbjError::UnexpectedEof)
         } else {
@@ -39,18 +63,18 @@ where
 
     fn buf_consume_marker(&mut self, marker: UbjMarker) -> UbjResult<()> {
         let buf = self.buf_refill()?;
-        if buf[0] == marker as u8 {
+        if buf[0] == u8::from(marker) {
             self.buf_consume(1);
             Ok(())
         } else {
-            Err(UbjError::UnexpectedMarker(buf[0]))
+            Err(UbjError::IllegalMarker(buf[0]))
         }
     }
 
-    fn buf_consume_bytes<const LEN: usize>(&mut self) -> UbjResult<[u8; LEN]> {
+    fn buf_consume_bytes<const N: usize>(&mut self) -> UbjResult<[u8; N]> {
         // Create a new joining stack-allocated buffer and a few useful counters
-        let mut joining_buffer = [0u8; LEN];
-        let mut pending_bytes = LEN;
+        let mut joining_buffer = [0u8; N];
+        let mut pending_bytes = N;
         let mut bytes_copied = 0;
 
         // This is the COPY LOOP
@@ -117,7 +141,7 @@ where
 
                     if invalid_bytes_count >= utf8_bytes_count {
                         // It looks like an unrecoverable UTF-8 error
-                        return Err(UbjError::Utf8Error(err));
+                        return Err(UbjError::BadString(err));
                     } else {
                         // Attempts to handle the error by taking the valid portion of the source buffer
                         let valid_str_slice =
@@ -164,12 +188,12 @@ where
     pub fn read_bool(&mut self) -> UbjResult<bool> {
         let bytes = self.buf_consume_bytes::<1>()?;
         let marker = bytes[0];
-        if marker == UbjMarker::True as u8 {
+        if marker == u8::from(UbjMarker::True) {
             Ok(true)
-        } else if marker == UbjMarker::False as u8 {
+        } else if marker == u8::from(UbjMarker::False) {
             Ok(false)
         } else {
-            Err(UbjError::UnexpectedMarker(marker))
+            Err(UbjError::IllegalMarker(marker))
         }
     }
 
@@ -238,7 +262,7 @@ where
         if c.is_ascii() {
             Ok(c as char)
         } else {
-            Err(UbjError::CharNotAscii(c as u32))
+            Err(UbjError::NotAsciiChar(c as u32))
         }
     }
 

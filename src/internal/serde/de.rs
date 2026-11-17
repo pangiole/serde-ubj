@@ -1,29 +1,42 @@
-use crate::inner::IoBufRead;
-use crate::inner::err::UbjError;
-use crate::inner::reader::UbjReader;
+use crate::internal::error::UbjError;
+use crate::internal::io::reader::UbjReader;
+use embedded_io::BufRead as Source;
 use serde::de::Visitor;
 
-struct UbjDeserializer<R>
+struct UbjDeserializer<S>
 where
-    R: IoBufRead,
+    S: Source,
 {
-    ubj_reader: UbjReader<R>,
+    ubj_reader: UbjReader<S>,
 }
 
-impl<R> UbjDeserializer<R>
+#[cfg(feature = "std")]
+impl<S> UbjDeserializer<embedded_io_adapters::std::FromStd<S>>
 where
-    R: IoBufRead,
+    S: std::io::BufRead,
 {
-    fn new(reader: R) -> Self {
+    fn new(reader: S) -> Self {
         Self {
             ubj_reader: UbjReader::new(reader),
         }
     }
 }
 
-impl<'de, R> serde::Deserializer<'de> for &mut UbjDeserializer<R>
+#[cfg(not(feature = "std"))]
+impl<S> UbjDeserializer<S>
 where
-    R: IoBufRead,
+    S: Source,
+{
+    fn new(source: S) -> Self {
+        Self {
+            ubj_reader: UbjReader::new(source),
+        }
+    }
+}
+
+impl<'de, S> serde::Deserializer<'de> for &mut UbjDeserializer<S>
+where
+    S: Source,
 {
     type Error = UbjError;
 
@@ -333,16 +346,16 @@ where
 //  A C C E S S O R s
 // -----------------------------------------------------------------------------
 
-struct UbjAccessor<'a, R>
+struct UbjAccessor<'a, S>
 where
-    R: IoBufRead,
+    S: Source,
 {
-    deserializer: &'a mut UbjDeserializer<R>,
+    deserializer: &'a mut UbjDeserializer<S>,
 }
 
-impl<'de, 'a, R> serde::de::SeqAccess<'de> for UbjAccessor<'a, R>
+impl<'de, 'a, S> serde::de::SeqAccess<'de> for UbjAccessor<'a, S>
 where
-    R: IoBufRead,
+    S: Source,
 {
     type Error = UbjError;
 
@@ -360,9 +373,9 @@ where
     }
 }
 
-impl<'de, 'a, R> serde::de::MapAccess<'de> for UbjAccessor<'a, R>
+impl<'de, 'a, S> serde::de::MapAccess<'de> for UbjAccessor<'a, S>
 where
-    R: IoBufRead,
+    S: Source,
 {
     type Error = UbjError;
 
@@ -396,9 +409,9 @@ where
     }
 }
 
-impl<'de, 'a, R> serde::de::EnumAccess<'de> for UbjAccessor<'a, R>
+impl<'de, 'a, S> serde::de::EnumAccess<'de> for UbjAccessor<'a, S>
 where
-    R: IoBufRead,
+    S: Source,
 {
     type Error = UbjError;
     type Variant = Self;
@@ -412,9 +425,9 @@ where
     }
 }
 
-impl<'de, 'a, R> serde::de::VariantAccess<'de> for UbjAccessor<'a, R>
+impl<'de, 'a, S> serde::de::VariantAccess<'de> for UbjAccessor<'a, S>
 where
-    R: IoBufRead,
+    S: Source,
 {
     type Error = UbjError;
 
@@ -464,16 +477,16 @@ where
     }
 }
 
-struct UbjIdentifierDeserializer<'a, R>
+struct UbjIdentifierDeserializer<'a, S>
 where
-    R: IoBufRead,
+    S: Source,
 {
-    deserializer: &'a mut UbjDeserializer<R>,
+    deserializer: &'a mut UbjDeserializer<S>,
 }
 
-impl<'de, 'a, R> serde::de::Deserializer<'de> for &mut UbjIdentifierDeserializer<'a, R>
+impl<'de, 'a, S> serde::de::Deserializer<'de> for &mut UbjIdentifierDeserializer<'a, S>
 where
-    R: IoBufRead,
+    S: Source,
 {
     type Error = UbjError;
 
@@ -512,9 +525,10 @@ where
 ///     Ok(())
 /// }
 /// ```
+#[cfg(feature = "std")]
 pub fn from_buf_reader<'de, R, T>(reader: &mut R) -> Result<T, UbjError>
 where
-    R: IoBufRead,
+    R: std::io::BufRead,
     T: serde::Deserialize<'de>,
 {
     let mut deserializer = UbjDeserializer::new(reader);
@@ -522,9 +536,24 @@ where
 }
 
 /// Deserialize from a vector (in-memory buffer) of bytes into a Rust value of type `T`.
-pub fn from_vec<'de, T>(vec: Vec<u8>) -> Result<T, UbjError>
+#[cfg(feature = "alloc")]
+pub fn from_vec<'de, T>(vec: alloc::vec::Vec<u8>) -> Result<T, UbjError>
 where
     T: serde::Deserialize<'de>,
 {
-    from_buf_reader(&mut vec.as_slice())
+    let mut deserializer = UbjDeserializer::new(vec.as_slice());
+    serde::Deserialize::deserialize(&mut deserializer)
+}
+
+/// Deserialize from a borrowed byte slice into a Rust value of type `T`.
+///
+/// This is the `no_std`-friendly counterpart of [`from_vec`]: it borrows the input bytes
+/// instead of taking ownership of a heap-allocated buffer.
+#[cfg(feature = "alloc")]
+pub fn from_slice<'de, T>(bytes: &[u8]) -> Result<T, UbjError>
+where
+    T: serde::Deserialize<'de>,
+{
+    let mut deserializer = UbjDeserializer::new(bytes);
+    serde::Deserialize::deserialize(&mut deserializer)
 }

@@ -1,0 +1,17 @@
+/* Marker-pen highlight for code fragments delimited by the
+   `/*<highlight>` and `/*</highlight>` block comments.
+   Applied by docs/code-highlight.js. */
+
+pre code .code-hl {
+    background-color: rgba(255, 214, 0, 0.32);
+    border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/* Softer tint over the dark themes, where the background is already dark. */
+html.coal pre code .code-hl,
+html.navy pre code .code-hl,
+html.ayu pre code .code-hl {
+    background-color: rgba(255, 214, 0, 0.18);
+}

@@ -12,6 +12,7 @@ command = "mdbook-mermaid"
 [output]
 
 [output.html]
-additional-js = ["mermaid.min.js", "mermaid-init.js"]
+additional-js = ["mermaid.min.js", "mermaid-init.js", "mathjax-config.js", "tex-svg.js", "code-highlight.js"]
+additional-css = ["code-highlight.css", "tables.css"]
 site-url = "/serde-ubj/"
 git-repository-url = "https://github.com/pangiole/serde-ubj"

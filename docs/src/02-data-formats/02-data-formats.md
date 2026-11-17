@@ -34,7 +34,7 @@ instead, represent data into more compact byte arrays, optimizing for
 transmission speed, CPU parsing overhead, and storage footprint.
 
 
-### Schema-Less vs Schema-Aware
+### Schema-Less vs Self-Describing
 Some data formats are schema-less or self-describing (with keys transmitted 
 alongside values), while others rely on strict external schemas to guarantee
 type safety, forward compatibility, and backward compatibility as systems evolve.
@@ -103,17 +103,18 @@ starting from the text-based ones, and ending with the binary formats:
   format that acts like a compact, faster version of JSON, allowing applications
   to exchange data structures quickly without the overhead of text parsing.
 
-The above list is not exhaustive, of course; there are many other data formats 
-out there which we couldn't mention for brevity. And, there exists **UBJ - 
+The above list is not exhaustive, of course; there exist tens of many other 
+data formats we couldn't mention, for brevity. And, there exists **UBJ - 
 Universal Binary JSON** too (see <a href="https://ubjson.org/" target="_blank"
-rel="noopener noreferrer">https://ubjson.org/</a>), which although not 
-popular, is simple enough to be adopted by this book as case study for learning 
-how to code in Rust with Serde.
+rel="noopener noreferrer">https://ubjson.org/</a>), which although not so
+popular, looks simple enough to be adopted by this book, as case study, for 
+learning how to code in Rust with Serde.
 
-### Usage of Data Formats
+### Why so many
 We may wonder: _"why so many data formats?"_. Reason for specifying so many 
-is that each one is designed to address a particular use cases. The following
-are the most common usages of the most popular data formats of nowadays:
+is that each one of them is specifically designed to address a particular use 
+cases. The following are the most common usages of the most popular data formats
+of nowadays:
 
 * _Configuration & Metadata_:    
   TOML, YAML, JSON, and XML are typically used for application 
@@ -129,23 +130,9 @@ are the most common usages of the most popular data formats of nowadays:
   batch processing, and data warehousing.
 
 
-## What is Serde
-Serde is not a data format. It is considered a **serialization framework** that 
-sits between our Rust data types, and any possible external data format (such 
-as JSON, Avro, MessagePack, etc.).
+## UBJ - Universal Binary JSON
+> [!CAUTION]
+> This section is still missing. It is supposed to summarize the major 
+> structural facts about this particular binary format
 
-![Serde Framework](images/serde.webp)
-
-A Rust program using the Serde framework can keep manipulating values held in 
-memory as it would normally do. The values are still allocated as instances of 
-Rust data types, such as integers, booleans, structs, enums, etc. And that's 
-what we consider our **application data model**. Serde does not affect it.
-
-From our program point of view, **serializing** with Serde is the act of 
-walking our application data model values and emitting sequences of bytes able
-to represent the same into a particular data format (such as UBJ or 
-YAML).
-
-On the other hand, **deserializing** is the act of reading a sequence of bytes,
-structured according a particular data format (such as UBJ or YAML), and turning
-the Rust values back into memory, in the types of our application data model.
+[//]: # (TODO Summarize the major structural facts about UBJ format)

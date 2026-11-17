@@ -1,7 +1,7 @@
 
 /// Generates a multilingual text string that, when UTF-8 encoded, has exactly `byte_count` bytes.
 /// Uses a mix of ASCII (1 byte), Latin Extended (2 bytes), CJK (3 bytes), and Emoji (4 bytes).
-pub fn generate(byte_count: usize) -> (String, Vec<u8>) {
+pub fn randomize(byte_count: usize) -> (String, Vec<u8>) {
     let mut string = String::new();
     let mut bytes_added = 0;
 
